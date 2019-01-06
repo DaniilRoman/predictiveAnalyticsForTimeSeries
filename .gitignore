@@ -1,0 +1,7 @@
+/venv/Lib
+/venv/Scripts
+*.dll
+/__pycache__/TsUtils.cpython-36.pyc
+/__pycache__/HoltWinters.cpython-36.pyc
+/__pycache__/SARIMA.cpython-36.pyc
+/.idea
