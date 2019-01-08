@@ -25,31 +25,7 @@ class MLModels:
         series.columns = newColumnNames
         self.series = series.y1
 
-    def code_mean(data, cat_feature, real_feature):
-        """
-        Returns a dictionary where keys are unique categories of the cat_feature,
-        and values are means over real_feature
-        """
-        return dict(data.groupby(cat_feature)[real_feature].mean())
-
-
-    def timeseries_train_test_split(X, y, test_size_percent):
-        """
-            Perform train-test split with respect to time series structure
-        """
-
-        # get the index after which test set starts
-        train_size_percent = 1 - test_size_percent
-        test_index = int(len(X) * train_size_percent)
-
-        X_train = X.iloc[:test_index]
-        y_train = y.iloc[:test_index]
-        X_test = X.iloc[test_index:]
-        y_test = y.iloc[test_index:]
-
-        return X_train, X_test, y_train, y_test
-
-    def prepareData(series, lag_start, lag_end, test_size, target_encoding=False):
+    def prepareData(self, lag_start, lag_end, test_size, target_encoding=False):
         """
             series: pd.DataFrame
                 dataframe with timeseries
@@ -73,7 +49,7 @@ class MLModels:
         """
 
         # copy of the initial dataset
-        data = pd.DataFrame(series.copy())
+        data = pd.DataFrame(self.series.copy())
         data.columns = ["y"]
 
         # lags of series
@@ -81,16 +57,13 @@ class MLModels:
             data["lag_{}".format(i)] = data.y.shift(i)
 
         # datetime features
-        data.index = pd.to_datetime(data.index)
-        data["hour"] = data.index.hour
-        data["weekday"] = data.index.weekday
-        data['is_weekend'] = data.weekday.isin([5, 6]) * 1
+        self.extractFeatures()
 
         if target_encoding:
             # calculate averages on train set only
             test_index = int(len(data.dropna()) * (1 - test_size))
-            data['weekday_average'] = list(map(code_mean(data[:test_index], 'weekday', "y").get, data.weekday))
-            data["hour_average"] = list(map(code_mean(data[:test_index], 'hour', "y").get, data.hour))
+            data['weekday_average'] = list(map(self.code_mean(data[:test_index], 'weekday', "y").get, data.weekday))
+            data["hour_average"] = list(map(self.code_mean(data[:test_index], 'hour', "y").get, data.hour))
 
             # drop encoded variables
             data.drop(["hour", "weekday"], axis=1, inplace=True)
@@ -98,10 +71,33 @@ class MLModels:
         # train-test split
         y = data.dropna().y
         X = data.dropna().drop(['y'], axis=1)
-        X_train, X_test, y_train, y_test = timeseries_train_test_split(X, y, test_size=test_size)
+        X_train, X_test, y_train, y_test = self.timeseries_train_test_split(X, y, test_size=test_size)
 
         return X_train, X_test, y_train, y_test
 
+    def code_mean(data, cat_feature, real_feature):
+        """
+        Returns a dictionary where keys are unique categories of the cat_feature,
+        and values are means over real_feature
+        """
+        return dict(data.groupby(cat_feature)[real_feature].mean())
+
+
+    def timeseries_train_test_split(X, y, test_size_percent):
+        """
+            Perform train-test split with respect to time series structure
+        """
+
+        # get the index after which test set starts
+        train_size_percent = 1 - test_size_percent
+        test_index = int(len(X) * train_size_percent)
+
+        X_train = X.iloc[:test_index]
+        y_train = y.iloc[:test_index]
+        X_test = X.iloc[test_index:]
+        y_test = y.iloc[test_index:]
+
+        return X_train, X_test, y_train, y_test
 
     def plotModelResults(model, X_train=X_train, X_test=X_test, plot_intervals=False, plot_anomalies=False):
         """
@@ -157,10 +153,10 @@ class MLModels:
         plt.grid(True, axis='y')
         plt.hlines(y=0, xmin=0, xmax=len(coefs), linestyles='dashed')
 
-    def runLenRegAndPlot(values):
+    def runLenRegAndPlot(self, values):
         scaler = StandardScaler()
         X_train, X_test, y_train, y_test = \
-            prepareData(values, lag_start=6, lag_end=25, test_size=0.3, target_encoding=True)
+            self.prepareData(values, lag_start=6, lag_end=25, test_size=0.3, target_encoding=True)
 
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
@@ -168,34 +164,28 @@ class MLModels:
         lr = LinearRegression()
         lr.fit(X_train_scaled, y_train)
 
-        plotModelResults(lr, X_train=X_train_scaled, X_test=X_test_scaled, plot_intervals=True, plot_anomalies=True)
-        plotCoefficients(lr)
+        self.plotModelResults(lr, X_train=X_train_scaled, X_test=X_test_scaled, plot_intervals=True, plot_anomalies=True)
+        self.plotCoefficients(lr)
 
     def plotCorrelMatrix(X_train):
         plt.figure(figsize=(10, 8))
         sns.heatmap(X_train.corr())
 
-    def applyRidgeCVRegularization():
+    def applyRidgeCVRegularization(self):
+        self.applyCVRegularization(RidgeCV)
 
-        ridge = RidgeCV(cv=tscv)
-        ridge.fit(X_train_scaled, y_train)
+    def applyLassoCVRegularization(self):
+        self.applyCVRegularization(LassoCV)
 
-        plotModelResults(ridge,
+    def applyCVRegularization(self, method):
+        regularizationModel = method(cv=tscv)
+        regularizationModel.fit(X_train_scaled, y_train)
+
+        self.plotModelResults(regularizationModel,
                          X_train=X_train_scaled,
                          X_test=X_test_scaled,
                          plot_intervals=True, plot_anomalies=True)
-        plotCoefficients(ridge)
-
-
-    def applyLassoCVRegularization():
-        lasso = LassoCV(cv=tscv)
-        lasso.fit(X_train_scaled, y_train)
-
-        plotModelResults(lasso,
-                         X_train=X_train_scaled,
-                         X_test=X_test_scaled,
-                         plot_intervals=True, plot_anomalies=True)
-        plotCoefficients(lasso)
+        self.plotCoefficients(regularizationModel)
 
     def applyXGBoost():
         xgb = XGBRegressor()
