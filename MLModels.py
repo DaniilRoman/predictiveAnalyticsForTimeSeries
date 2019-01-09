@@ -25,7 +25,7 @@ class MLModels:
         series.columns = newColumnNames
         self.series = series.y1
 
-    def prepareData(self, lag_start, lag_end, test_size, target_encoding=False):
+    def prepareData(self, lag_start, lag_end, test_size):
         """
             series: pd.DataFrame
                 dataframe with timeseries
@@ -57,16 +57,8 @@ class MLModels:
             data["lag_{}".format(i)] = data.y.shift(i)
 
         # datetime features
-        self.extractFeatures()
+        data = self.extractFeatures(data)
 
-        if target_encoding:
-            # calculate averages on train set only
-            test_index = int(len(data.dropna()) * (1 - test_size))
-            data['weekday_average'] = list(map(self.code_mean(data[:test_index], 'weekday', "y").get, data.weekday))
-            data["hour_average"] = list(map(self.code_mean(data[:test_index], 'hour', "y").get, data.hour))
-
-            # drop encoded variables
-            data.drop(["hour", "weekday"], axis=1, inplace=True)
 
         # train-test split
         y = data.dropna().y
@@ -74,13 +66,6 @@ class MLModels:
         X_train, X_test, y_train, y_test = self.timeseries_train_test_split(X, y, test_size=test_size)
 
         return X_train, X_test, y_train, y_test
-
-    def code_mean(data, cat_feature, real_feature):
-        """
-        Returns a dictionary where keys are unique categories of the cat_feature,
-        and values are means over real_feature
-        """
-        return dict(data.groupby(cat_feature)[real_feature].mean())
 
 
     def timeseries_train_test_split(X, y, test_size_percent):
@@ -195,3 +180,4 @@ class MLModels:
     def extractFeatures(series):
         series = extract_features(series)
         series.head()
+        return series
