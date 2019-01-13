@@ -6,9 +6,10 @@ from Config import *
 #
 
 # workaround for multiprocessing on windows
-if __name__ == '__main__':
-    print("loading {}".format(features_file))
-    features = pd.read_csv(features_file)
+# if __name__ == '__main__':
+def selectFeatures(pathToFile):
+    print("loading {}".format(pathToFile))
+    features = pd.read_csv(pathToFile)
 
     print(features.head())
     print(features.y.head())
@@ -22,7 +23,15 @@ if __name__ == '__main__':
     test_y = features.iloc[validation_split_i:].y
 
     print("selecting features...")
-    train_features_selected = select_features(train_x, train_y, fdr_level=fdr_level)
+    print(train_x)
+    for i in train_x.columns:
+        print(i)
+    print(train_y)
+    print('indexxxxxxxxxxx')
+    print(train_x.index)
+    print(type(train_x))
+    print(type(train_y))
+    train_features_selected = select_features(train_x, train_y, fdr_level=fdr_level, chunksize=100, ml_task='regression')
 
     print(train_features_selected.head())
 
@@ -36,7 +45,7 @@ if __name__ == '__main__':
 
 
     print("saving {}".format(train_file))
-    train.to_csv(train_file, index=None)
+    train.to_csv('data/candy_prodaction_train.csv', index=None)
 
     print("saving {}".format(test_file))
-    test.to_csv(test_file, index=None)
+    test.to_csv('data/candy_prodaction_test.csv', index=None)

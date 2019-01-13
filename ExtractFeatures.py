@@ -4,15 +4,12 @@ import pandas as pd
 from tsfresh import extract_features
 from tsfresh.utilities.dataframe_functions import impute
 
-#
-
 from Config import input_file, features_file
 
-if __name__ == '__main__':
-    d = pd.read_csv(input_file, header=None)
+#
+# if __name__ == '__main__':
 
-    print(d.head())
-
+def oldApproachForPrepareData(d):
     columns = list(d.columns)
     columns.pop()
     columns.append('target')
@@ -20,14 +17,51 @@ if __name__ == '__main__':
 
     y = d.target
     d.drop('target', axis=1, inplace=True)
-    print(d.head())
+    columns = list(d.columns)
+    columns.pop()
+    columns.append(0)
+    d.columns = columns
 
     d = d.stack()
 
-    print(d.head())
-
     d.index.rename(['id', 'time'], inplace=True)
     d = d.reset_index()
+    return d
+
+def newApproachForPrepareData(d, timeStr):
+    time = d[timeStr]
+    d.drop(timeStr, axis=1, inplace=True)
+    d = getY(d)
+    d['id'] = range(1, len(d)+1)
+    d['time'] = time
+    print(d.head())
+    return d
+
+def getY(data):
+    series = pd.DataFrame(data.copy())
+    newColumnNames = []
+    newOldColumnNames = {}
+    for i in range(len(series.columns)):
+        key = "y" + str(i)
+        newColumnNames.append(key)
+        newOldColumnNames[key] = series.columns[i]
+    series.columns = newColumnNames
+    series = pd.DataFrame(series.y0)
+    series.columns = ["y"]
+    print(series.head())
+    return series
+
+
+def extractFeatures(pathToFile, columnWithDate):
+    d = pd.read_csv(pathToFile+'.csv')
+    print(d.head())
+
+    #TODO for speed
+    # d = d.loc[len(d)*0.8:]
+
+    d = newApproachForPrepareData(d, columnWithDate)
+
+    y = d['y']
 
     print(len(d))
     print(d.head())
@@ -37,10 +71,8 @@ if __name__ == '__main__':
         warnings.simplefilter("ignore")
         f = extract_features(d, column_id="id", column_sort="time")
 
-    # c:\usr\anaconda\lib\site-packages\scipy\signal\spectral.py:1633:
-    # UserWarning: nperseg = 256 is greater than input length  = 152, using nperseg = 152
-
-    # Feature Extraction: 20it [22:33, 67.67s/it]
+    f['y'] = y
+    # f['id'] = range(0, len(f))
 
     print(f.head())
 
@@ -50,5 +82,4 @@ if __name__ == '__main__':
 
     assert f.isnull().sum().sum() == 0
 
-    f['y'] = y
-    f.to_csv(features_file, index=None)
+    f.to_csv(pathToFile+'_features.csv', index=None)

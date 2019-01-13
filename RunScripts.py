@@ -2,9 +2,10 @@ from scipy.optimize import minimize
 
 from CrossValidation import timeseriesCVscore
 from HoltWinters import HoltWinters
+from MLModels import *
 
 
-def run_triple_exponential_smoothing(data):
+def runTripleExponentialSmoothing(data):
     data = data[:-20] # leave some data for testing
 
     # initializing model parameters alpha, beta and gamma
@@ -29,4 +30,8 @@ def run_triple_exponential_smoothing(data):
                         n_preds = 50, scaling_factor = 3)
     model.triple_exponential_smoothing()
     return model
+
+def runLegReg():
+    mlModels = MLModels(pd.DataFrame(), "time")
+    mlModels.runLenRegAndPlot()
 

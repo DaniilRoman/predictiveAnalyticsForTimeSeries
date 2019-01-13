@@ -14,121 +14,68 @@ from sklearn.model_selection import cross_val_score, TimeSeriesSplit
 from HoltWinters import mean_absolute_percentage_error
 
 class MLModels:
-    def __init__(self, series):
-        series = pd.DataFrame(series.copy())
-        newColumnNames = []
-        self.newOldColumnNames = {}
-        for i in range(len(series.columns)):
-            key = "y" + str(i)
-            newColumnNames.append(key)
-            self.newOldColumnNames[key] = series.columns[i]
-        series.columns = newColumnNames
-        self.series = series.y1
+    def __init__(self, series, timeStr):
+        self.timeStr = timeStr
+        self.series = pd.DataFrame(series.copy())
+        self.tscv = TimeSeriesSplit(n_splits=5)
 
-    def prepareData(self, lag_start, lag_end, test_size):
-        """
-            series: pd.DataFrame
-                dataframe with timeseries
+    def prepareData(self):
+        train = pd.read_csv('data/candy_prodaction_train.csv')
+        test = pd.read_csv('data/candy_prodaction_test.csv')
+        self.X_train = train.drop('y', axis=1)
+        self.y_train = train.y
 
-            lag_start: int
-                initial step back in time to slice target variable
-                example - lag_start = 1 means that the model
-                          will see yesterday's values to predict today
+        self.X_test = test.drop('y', axis=1)
+        self.y_test = test.y
 
-            lag_end: int
-                final step back in time to slice target variable
-                example - lag_end = 4 means that the model
-                          will see up to 4 days back in time to predict today
+        return self.X_train, self.X_test, self.y_train, self.y_test
 
-            test_size: float
-                size of the test dataset after train/test split as percentage of dataset
-
-            target_encoding: boolean
-                if True - add target averages to the dataset
-
-        """
-
-        # copy of the initial dataset
-        data = pd.DataFrame(self.series.copy())
-        data.columns = ["y"]
-
-        # lags of series
-        for i in range(lag_start, lag_end):
-            data["lag_{}".format(i)] = data.y.shift(i)
-
-        # datetime features
-        data = self.extractFeatures(data)
-
-
-        # train-test split
-        y = data.dropna().y
-        X = data.dropna().drop(['y'], axis=1)
-        X_train, X_test, y_train, y_test = self.timeseries_train_test_split(X, y, test_size=test_size)
-
-        return X_train, X_test, y_train, y_test
-
-
-    def timeseries_train_test_split(X, y, test_size_percent):
-        """
-            Perform train-test split with respect to time series structure
-        """
-
-        # get the index after which test set starts
-        train_size_percent = 1 - test_size_percent
-        test_index = int(len(X) * train_size_percent)
-
-        X_train = X.iloc[:test_index]
-        y_train = y.iloc[:test_index]
-        X_test = X.iloc[test_index:]
-        y_test = y.iloc[test_index:]
-
-        return X_train, X_test, y_train, y_test
-
-    def plotModelResults(model, X_train=X_train, X_test=X_test, plot_intervals=False, plot_anomalies=False):
+    def plotModelResults(self, model, X_train, X_test, plot_intervals=False, plot_anomalies=False):
         """
             Plots modelled vs fact values, prediction intervals and anomalies
 
         """
-
-        prediction = model.predict(X_test)
+        # if X_train == None: X_train = self.X_train
+        # if X_test == None: X_test= self.X_test
+        self.prediction = model.predict(X_test)
 
         plt.figure(figsize=(15, 7))
-        plt.plot(prediction, "g", label="prediction", linewidth=2.0)
-        plt.plot(y_test.values, label="actual", linewidth=2.0)
+        plt.plot(self.prediction, "g", label="prediction", linewidth=2.0)
+        plt.plot(self.y_test, label="actual", linewidth=2.0)
 
         if plot_intervals:
-            cv = cross_val_score(model, X_train, y_train,
-                                 cv=tscv,
+            cv = cross_val_score(model, X_train, self.y_train,
+                                 cv=self.tscv,
                                  scoring="neg_mean_absolute_error")
             mae = cv.mean() * (-1)
             deviation = cv.std()
 
             scale = 1.96
-            lower = prediction - (mae + scale * deviation)
-            upper = prediction + (mae + scale * deviation)
+            lower = self.prediction - (mae + scale * deviation)
+            upper = self.prediction + (mae + scale * deviation)
 
             plt.plot(lower, "r--", label="upper bond / lower bond", alpha=0.5)
             plt.plot(upper, "r--", alpha=0.5)
 
             if plot_anomalies:
-                anomalies = np.array([np.NaN] * len(y_test))
-                anomalies[y_test < lower] = y_test[y_test < lower]
-                anomalies[y_test > upper] = y_test[y_test > upper]
+                anomalies = np.array([np.NaN] * len(self.y_test))
+                anomalies[self.y_test < lower] = self.y_test[self.y_test < lower]
+                anomalies[self.y_test > upper] = self.y_test[self.y_test > upper]
                 plt.plot(anomalies, "o", markersize=10, label="Anomalies")
 
-        error = mean_absolute_percentage_error(prediction, y_test)
+        error = mean_absolute_percentage_error(self.prediction, self.y_test)
         plt.title("Mean absolute percentage error {0:.2f}%".format(error))
         plt.legend(loc="best")
         plt.tight_layout()
         plt.grid(True)
 
 
-    def plotCoefficients(model):
+    def plotCoefficients(self, model):
         """
             Plots sorted coefficient values of the model
         """
 
-        coefs = pd.DataFrame(model.coef_, X_train.columns)
+        coefs = pd.DataFrame(model.coef_, self.X_train.columns)
         coefs.columns = ["coef"]
         coefs["abs"] = coefs.coef.apply(np.abs)
         coefs = coefs.sort_values(by="abs", ascending=False).drop(["abs"], axis=1)
@@ -138,10 +85,9 @@ class MLModels:
         plt.grid(True, axis='y')
         plt.hlines(y=0, xmin=0, xmax=len(coefs), linestyles='dashed')
 
-    def runLenRegAndPlot(self, values):
+    def runLenRegAndPlot(self):
         scaler = StandardScaler()
-        X_train, X_test, y_train, y_test = \
-            self.prepareData(values, lag_start=6, lag_end=25, test_size=0.3, target_encoding=True)
+        X_train, X_test, y_train, y_test = self.prepareData()
 
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
@@ -151,6 +97,7 @@ class MLModels:
 
         self.plotModelResults(lr, X_train=X_train_scaled, X_test=X_test_scaled, plot_intervals=True, plot_anomalies=True)
         self.plotCoefficients(lr)
+        plt.show()
 
     def plotCorrelMatrix(X_train):
         plt.figure(figsize=(10, 8))
@@ -163,18 +110,18 @@ class MLModels:
         self.applyCVRegularization(LassoCV)
 
     def applyCVRegularization(self, method):
-        regularizationModel = method(cv=tscv)
-        regularizationModel.fit(X_train_scaled, y_train)
+        regularizationModel = method(cv=self.tscv)
+        regularizationModel.fit(self.X_train_scaled, self.y_train)
 
         self.plotModelResults(regularizationModel,
-                         X_train=X_train_scaled,
-                         X_test=X_test_scaled,
+                         X_train=self.X_train_scaled,
+                         X_test=self.X_test_scaled,
                          plot_intervals=True, plot_anomalies=True)
         self.plotCoefficients(regularizationModel)
 
-    def applyXGBoost():
+    def applyXGBoost(self):
         xgb = XGBRegressor()
-        xgb.fit(X_train_scaled, y_train)
+        xgb.fit(self.X_train_scaled, self.y_train)
         return xgb
 
     def extractFeatures(series):
