@@ -63,20 +63,32 @@ import pandas as pd
 #     return series.y1
 
 
-extractFeatures(pathToCandyFile, "observation_date")
-#
-#
-#
-#
-featuresFile = pathToCandyFile+'_features.csv'
-features = pd.read_csv(featuresFile)
-#
-# for i in features.columns:
-#     print(i)
-#
-# print(len(features))
-#
-selectFeatures(featuresFile)
+# extractFeatures(pathToCandyFile, "observation_date")
+# #
+# #
+# #
+# #
+# featuresFile = pathToCandyFile+'_features.csv'
+# features = pd.read_csv(featuresFile)
+# #
+# # for i in features.columns:
+# #     print(i)
+# #
+# # print(len(features))
+# #
+# selectFeatures(featuresFile)
+
+
+def test():
+    return 1, 2, 3
+
+q, w = test()
+
+print(q, ' ', w)
+
+# tmp = 'test_features.csv'
+
+# print(tmp[:-len('_features.csv')])
 
 
 

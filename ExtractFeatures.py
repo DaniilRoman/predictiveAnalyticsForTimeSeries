@@ -52,8 +52,8 @@ def getY(data):
     return series
 
 
-def extractFeatures(pathToFile, columnWithDate):
-    d = pd.read_csv(pathToFile+'.csv')
+def extractFeatures(fileName, columnWithDate):
+    d = pd.read_csv(fileName+'.csv')
     print(d.head())
 
     #TODO for speed
@@ -82,4 +82,6 @@ def extractFeatures(pathToFile, columnWithDate):
 
     assert f.isnull().sum().sum() == 0
 
-    f.to_csv(pathToFile+'_features.csv', index=None)
+    fileToFeatures = fileName+'_features.csv'
+    f.to_csv(fileToFeatures, index=None)
+    return f, fileToFeatures

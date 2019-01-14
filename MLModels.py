@@ -2,7 +2,6 @@ import pandas as pd                              # tables and data manipulations
 import matplotlib.pyplot as plt                  # plots
 import numpy as np                               # vectors and matrices
 
-from tsfresh.feature_extraction import extract_features
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns                            # more plots
 
@@ -11,12 +10,15 @@ from sklearn.linear_model import LinearRegression
 from xgboost import XGBRegressor
 from sklearn.model_selection import cross_val_score, TimeSeriesSplit
 
+from ExtractFeatures import extractFeatures
 from HoltWinters import mean_absolute_percentage_error
+from SelectFeatures import selectFeatures
+
 
 class MLModels:
-    def __init__(self, series, timeStr):
+    def __init__(self, pathToFile, timeStr):
         self.timeStr = timeStr
-        self.series = pd.DataFrame(series.copy())
+        self.pathToFile = pathToFile
         self.tscv = TimeSeriesSplit(n_splits=5)
 
     def prepareData(self):
@@ -124,7 +126,7 @@ class MLModels:
         xgb.fit(self.X_train_scaled, self.y_train)
         return xgb
 
-    def extractFeatures(series):
-        series = extract_features(series)
-        series.head()
-        return series
+    def extractFeatures(fileName, timeStr):
+        features, pathToFeatures = extractFeatures(fileName, timeStr)
+        train, test, pathToTrain, pathToTest = selectFeatures(features, fileName)
+        return train, test

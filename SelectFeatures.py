@@ -7,10 +7,7 @@ from Config import *
 
 # workaround for multiprocessing on windows
 # if __name__ == '__main__':
-def selectFeatures(pathToFile):
-    print("loading {}".format(pathToFile))
-    features = pd.read_csv(pathToFile)
-
+def selectFeatures(features, fileName):
     print(features.head())
     print(features.y.head())
 
@@ -43,9 +40,12 @@ def selectFeatures(pathToFile):
     test = test_x[train_features_selected.columns].copy()
     test['y'] = test_y
 
+    pathToTrain = 'data/'+fileName+'_train.csv'
+    pathToTest = 'data/'+fileName+'_test.csv'
 
     print("saving {}".format(train_file))
-    train.to_csv('data/candy_prodaction_train.csv', index=None)
+    train.to_csv(pathToTrain, index=None)
 
     print("saving {}".format(test_file))
-    test.to_csv('data/candy_prodaction_test.csv', index=None)
+    test.to_csv(pathToTest, index=None)
+    return train, test, pathToTrain, pathToTest
