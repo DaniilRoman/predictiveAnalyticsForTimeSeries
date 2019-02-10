@@ -10,9 +10,9 @@ from sklearn.linear_model import LinearRegression
 from xgboost import XGBRegressor
 from sklearn.model_selection import cross_val_score, TimeSeriesSplit
 
-from ExtractFeatures import extractFeatures
-from HoltWinters import mean_absolute_percentage_error
-from SelectFeatures import selectFeatures
+from src.mlModels.ExtractFeatures import extractFeatures
+from src.TsUtils import mean_absolute_percentage_error
+from src.mlModels.SelectFeatures import selectFeatures
 
 
 class MLModels:

@@ -1,7 +1,6 @@
-import pandas as pd
-from tsfresh import extract_features, select_features
+from tsfresh import select_features
 
-from Config import *
+from src.Config import *
 
 #
 

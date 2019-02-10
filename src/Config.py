@@ -12,5 +12,6 @@ validation_split_i = 1000
 fdr_level = 0.05
 
 candy_file = "data/candy_production.csv"
+candy_test_file = "data/candy_production_test.csv"
 pathToCandyFile = "data/candy_production"
 waves_file = "data/waves_price.csv"

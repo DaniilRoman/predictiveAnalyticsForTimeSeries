@@ -4,7 +4,6 @@ import pandas as pd
 from tsfresh import extract_features
 from tsfresh.utilities.dataframe_functions import impute
 
-from Config import input_file, features_file
 
 #
 # if __name__ == '__main__':

@@ -1,8 +1,8 @@
 from scipy.optimize import minimize
 
-from CrossValidation import timeseriesCVscore
-from HoltWinters import HoltWinters
-from MLModels import *
+from src.mlModels.CrossValidation import timeseriesCVscore
+from src.classicApproach.HoltWinters import HoltWinters
+from src.mlModels.MLModels import *
 
 
 def runTripleExponentialSmoothing(data):

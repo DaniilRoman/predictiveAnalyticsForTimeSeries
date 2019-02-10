@@ -1,15 +1,3 @@
-import requests
-from tsfresh import extract_features
-from tsfresh.feature_extraction import ComprehensiveFCParameters
-
-from Config import input_file, candy_file, pathToCandyFile, features_file
-from ExtractFeatures import *
-from RunScripts import runTripleExponentialSmoothing
-from SARIMA import SARIMA
-from SelectFeatures import select_features, selectFeatures
-from TsUtils import candy, waves
-import pandas as pd
-
 # sarima = SARIMA(waves)
 # sarima.plotWithAutocorrelation(lags=5)
 
