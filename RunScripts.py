@@ -1,11 +1,10 @@
 from scipy.optimize import minimize
 
-from src.classicApproach.CrossValidation import timeseriesCVscore
-from src.classicApproach.HoltWinters import HoltWinters
-from src.mlModels.MLModels import *
+from CrossValidation import timeseriesCVscore
+from HoltWinters import HoltWinters
 
 
-def runTripleExponentialSmoothing(data):
+def run_triple_exponential_smoothing(data):
     data = data[:-20] # leave some data for testing
 
     # initializing model parameters alpha, beta and gamma
@@ -30,8 +29,4 @@ def runTripleExponentialSmoothing(data):
                         n_preds = 50, scaling_factor = 3)
     model.triple_exponential_smoothing()
     return model
-
-def runLegReg():
-    mlModels = MLModels(pd.DataFrame(), "time")
-    mlModels.runLenRegAndPlot()
 

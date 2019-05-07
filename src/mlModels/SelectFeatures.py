@@ -39,8 +39,8 @@ def selectFeatures(features, fileName):
     test = test_x[train_features_selected.columns].copy()
     test['y'] = test_y
 
-    pathToTrain = 'data/'+fileName+'_train.csv'
-    pathToTest = 'data/'+fileName+'_test.csv'
+    pathToTrain = '../../data/'+fileName+'_train.csv'
+    pathToTest = '../../data/'+fileName+'_test.csv'
 
     print("saving {}".format(train_file))
     train.to_csv(pathToTrain, index=None)

@@ -28,7 +28,7 @@ class SARIMA:
         Ps = range(0, 2)
         self.D = 1
         Qs = range(0, 2)
-        self.s = 24  # season length is still 24
+        self.s = 2  # season length is still 24
 
         # creating list with all the possible combinations of parameters
         parameters = product(ps, qs, Ps, Qs)
@@ -74,7 +74,9 @@ class SARIMA:
 
     def runBestModel(self, result_table):
         # set the parameters that give the lowest AIC
-        p, q, P, Q = result_table.parameters[0]
+
+        p, q, P, Q = [3, 3, 1, 0]
+        # p, q, P, Q = result_table.parameters[0]
 
         self.bestModel = sm.tsa.statespace.SARIMAX(self.series, order=(p, self.d, q),
                                                seasonal_order=(P, self.D, Q, self.s)).fit(disp=-1)

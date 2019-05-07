@@ -9,7 +9,8 @@ def run_SARIMA(filePath):
     data = pd.read_csv(filePath)
     model = SARIMA(data)
     model.initParamList()
-    result_table = model.optimizeSARIMA()
+    # result_table = model.optimizeSARIMA()
+    result_table = {"parameters": [[3, 3, 0, 1]]}
     model.runBestModel(result_table)
 
     #time to ploting
@@ -19,4 +20,5 @@ def run_SARIMA(filePath):
     plotDoubleDiff(model.series)
 
 
-run_SARIMA("../../"+waves_file)
+run_SARIMA("../../"+candy_file)
+# run_SARIMA("../../data/notebooks/data.csv")

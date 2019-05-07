@@ -52,7 +52,7 @@ def getY(data):
 
 
 def extractFeatures(fileName, columnWithDate):
-    d = pd.read_csv(fileName+'.csv')
+    d = pd.read_csv('../../data/'+fileName+'.csv')
     print(d.head())
 
     #TODO for speed
@@ -68,6 +68,8 @@ def extractFeatures(fileName, columnWithDate):
     # doesn't work too well
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
+        print("-----------------------------")
+        print(d)
         f = extract_features(d, column_id="id", column_sort="time")
 
     f['y'] = y
@@ -82,5 +84,5 @@ def extractFeatures(fileName, columnWithDate):
     assert f.isnull().sum().sum() == 0
 
     fileToFeatures = fileName+'_features.csv'
-    f.to_csv(fileToFeatures, index=None)
+    f.to_csv('../../data/wafer/'+fileToFeatures, index=None)
     return f, fileToFeatures

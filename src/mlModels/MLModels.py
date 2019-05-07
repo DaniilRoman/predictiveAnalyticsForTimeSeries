@@ -22,8 +22,8 @@ class MLModels:
         self.tscv = TimeSeriesSplit(n_splits=5)
 
     def prepareData(self):
-        train = pd.read_csv('data/candy_prodaction_train.csv')
-        test = pd.read_csv('data/candy_prodaction_test.csv')
+        train = pd.read_csv('../../data/waves_price_train.csv')
+        test = pd.read_csv('../../data/waves_price_test.csv')
         self.X_train = train.drop('y', axis=1)
         self.y_train = train.y
 
@@ -70,6 +70,7 @@ class MLModels:
         plt.legend(loc="best")
         plt.tight_layout()
         plt.grid(True)
+        plt.savefig("../../data/images/ML/LinReg/" + "waves_Predicted.png")
 
 
     def plotCoefficients(self, model):
@@ -86,19 +87,21 @@ class MLModels:
         coefs.coef.plot(kind='bar')
         plt.grid(True, axis='y')
         plt.hlines(y=0, xmin=0, xmax=len(coefs), linestyles='dashed')
+        plt.savefig("../../data/images/ML/LinReg/" + "waves_Coef.png")
 
     def runLenRegAndPlot(self):
         scaler = StandardScaler()
         X_train, X_test, y_train, y_test = self.prepareData()
 
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+        self.X_train_scaled = scaler.fit_transform(X_train)
+        self.X_test_scaled = scaler.transform(X_test)
 
         lr = LinearRegression()
-        lr.fit(X_train_scaled, y_train)
+        lr.fit(self.X_train_scaled, y_train)
 
-        self.plotModelResults(lr, X_train=X_train_scaled, X_test=X_test_scaled, plot_intervals=True, plot_anomalies=True)
+        self.plotModelResults(lr, X_train=self.X_train_scaled, X_test=self.X_test_scaled, plot_intervals=True, plot_anomalies=True)
         self.plotCoefficients(lr)
+        plt.savefig("../../data/images/ML/LinReg/" + "waves_LenReg.png")
         plt.show()
 
     def plotCorrelMatrix(X_train):
@@ -120,6 +123,7 @@ class MLModels:
                          X_test=self.X_test_scaled,
                          plot_intervals=True, plot_anomalies=True)
         self.plotCoefficients(regularizationModel)
+        plt.savefig("../../data/images/ML/LinReg/" + "waves_Regularization.png")
 
     def applyXGBoost(self):
         xgb = XGBRegressor()

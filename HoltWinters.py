@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt                  # plots
 import numpy as np                               # vectors and matrices
 
-from src.TsUtils import mean_absolute_percentage_error
-
+def mean_absolute_percentage_error(y_true, y_pred):
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 class HoltWinters:
     """
@@ -108,10 +108,6 @@ class HoltWinters:
             self.Trend.append(trend)
             self.Season.append(seasonals[i % self.slen])
 
-
-
-
-
     def plotHoltWinters(self, series, plot_intervals=False, plot_anomalies=False):
         """
             series - dataset with timeseries
@@ -140,12 +136,10 @@ class HoltWinters:
                              y2=self.LowerBond, alpha=0.2, color="grey")
 
         plt.vlines(len(series), ymin=min(self.LowerBond), ymax=max(self.UpperBond), linestyles='dashed')
-        # plt.axvspan(len(series) - 20, len(self.result), alpha=0.3, color='lightgrey')
+        plt.axvspan(len(series) - 20, len(self.result), alpha=0.3, color='lightgrey')
         plt.grid(True)
         plt.axis('tight')
         plt.legend(loc="best", fontsize=13)
-        plt.savefig("../../data/images/HoltWinters/"+"Candy_HoltWinters_Intervals.png")
-        plt.show()
 
     def plotPredictedDeviation(self):
         plt.figure(figsize=(25, 5))
@@ -153,5 +147,3 @@ class HoltWinters:
         plt.grid(True)
         plt.axis('tight')
         plt.title("Brutlag's predicted deviation")
-        plt.savefig("../../data/images/HoltWinters/"+"Waves_PredictedDeviation.png")
-        plt.show()
