@@ -1,17 +1,21 @@
 from statsmodels.tsa.seasonal import seasonal_decompose
 import numpy as np
 
+from src.processing import DataHolder
+
 
 class SeasonalPeriod:
 
-    def __init__(self, left=10, right=80):
+    def __init__(self, dataStore: DataHolder, left: int = 10, right: int = 80):
+        self.dataStore = dataStore
         self.left = left
         self.right = right
-        self.period = 30
+        self.period = 40
 
-    def fastCalculateSeasonalPeriod(self, series, depth=10, window=5):
-        length = len(series)
-        midleSeries = int(length / 2)
+    def fastCalculateSeasonalPeriod(self, depth: int = 10, window: int = 5):
+        series: list = self.dataStore.yForDrawing
+        length: int = len(series)
+        midleSeries: int = int(length / 2)
         bestPeriod = self.left
         prevBestPeriod = bestPeriod - 1
         bestError = 200           # REFACTOR
@@ -75,7 +79,7 @@ class SeasonalPeriod:
                 bestPeriod = i
                 bestSeasonal = result.seasonal
         # print("Count: {}".format(count))
-        # print("bestPeriod: {}".format(bestPeriod))
+        print("bestPeriod: {}".format(bestPeriod))
         self.period = bestPeriod
         return bestPeriod, bestError, bestSeasonal
 

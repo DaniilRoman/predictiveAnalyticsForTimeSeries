@@ -5,7 +5,10 @@ import time
 
 class DataHolder:
 
-    def __init__(self):
+    def __init__(self, queue, limit=200, delay=0.1):
+        self.delay = delay
+        self.q = queue
+        self.limit = limit
         self.x = []
         self.y = []
         # self.xForDrawing = Array('i', [], lock=False)
@@ -22,26 +25,34 @@ class DataHolder:
     def storeNewValue(self):
         left = 100
         right = left + 1000
-        step = 200
-        # count = right - left
         series, oldSeries = self.getSeries(left, right)
 
-        # startSeries = series[:step]
-        for value in series:
-            print("store: {}".format(self.xForDrawing))
-            self.x.append(self.count)
-            self.y.append(value)
-            if len(self.xForDrawing) == 0:
-                self.xForDrawing = [self.count]
-            else:
-                self.xForDrawing.append(self.count)
-            self.yForDrawing.append(value)
-            self.count += 1
-            time.sleep(0.1)
+        ###############################################################
+        ###############################################################
+        step = 170
+        self.xForDrawing = list(range(step))
+        self.yForDrawing = list(series[:step].values)
+        self.count += step
+        ###############################################################
+        ###############################################################
+
+        while True:
+            if self.q.empty() == False:
+                value = self.q.get(timeout=0.01)
+                # print("store: {}".format(self.xForDrawing))
+                self.x.append(self.count)
+                self.y.append(value)
+                if len(self.xForDrawing) == 0:
+                    self.xForDrawing = [self.count]
+                else:
+                    self.xForDrawing.append(self.count)
+                self.yForDrawing.append(value)
+                self.count += 1
+            time.sleep(self.delay)
 
     def getXY(self):
 
-        print("get: {}".format(self.xForDrawing[:]))
+        # print("get: {}".format(self.xForDrawing[:]))
 
         if len(self.xForDrawing) != 0:
             for i in range(100):

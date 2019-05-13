@@ -5,15 +5,17 @@ from src.processing.SeasonalPeriod import SeasonalPeriod
 
 class RealTimePredict:
 
-    def __init__(self, series, left, right):
+    def __init__(self, seasonalPeriod, series=None, left=0, right=100):
         self.series = series
-        self.seasonalPeriod = SeasonalPeriod()
+        self.seasonalPeriod = seasonalPeriod
         self.left = left
         self.right = right
 
     def predict(self, series):
         seasonal = seasonal_decompose(series, model='aditive', freq=self.seasonalPeriod.period).seasonal
-        periodLeft, periodRight = self.__lastPeriod(seasonal.values)
+        seasonalValues = seasonal.values if isinstance(seasonal, type(np.array([1]))) == False else seasonal
+
+        periodLeft, periodRight = self.__lastPeriod(seasonalValues)
         periodCount = periodRight - periodLeft
 
         ########################### REFACTOR
@@ -22,18 +24,22 @@ class RealTimePredict:
 
         # x = np.array(range(self.left, self.right), dtype=np.double)[np.newaxis]
         x = np.array(range(len(series)), dtype=np.double)[np.newaxis]
-        y = np.array(seasonal.values, dtype=np.double)[np.newaxis]
+        y = np.array(seasonalValues, dtype=np.double)[np.newaxis]
 
         alpha, beta = self.__algebraicLinearRegressionOnAllSubwindows(x, y)
         # выделяем область предикшена(это один период сезонности)
         alpha = alpha[0][:periodCount]
         beta = beta[0][:periodCount]
-        new_x = [x[0][:periodCount]]
+        newX = [x[0][:periodCount]]
 
-        new_y = (alpha + beta * np.array(new_x, dtype=np.double))[0]
+        newY = (alpha + beta * np.array(newX, dtype=np.double))[0]
         # берем в виде предикшена наш последний период сезонности
         #     new_y = seasonal.values[periodLeft:periodRight]
-        return seasonal, new_y
+
+        ########################### REFACTOR
+        newY = newY + abs(min(newY[1:]))
+        ###########################
+        return seasonal, newY
 
     def __lastPeriod(self, seasonal):
         right = len(seasonal)
