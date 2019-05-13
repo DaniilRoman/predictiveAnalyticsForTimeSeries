@@ -1,3 +1,6 @@
+import time
+from threading import Thread
+
 from statsmodels.tsa.seasonal import seasonal_decompose
 import numpy as np
 
@@ -12,8 +15,14 @@ class SeasonalPeriod:
         self.right = right
         self.period = 40
 
+    def calculatePeriodInWhile(self):
+        while True:
+            if self.dataStore.seasonal != []:
+                self.fastCalculateSeasonalPeriod()
+            time.sleep(self.dataStore.delay)
+
     def fastCalculateSeasonalPeriod(self, depth: int = 10, window: int = 5):
-        series: list = self.dataStore.yForDrawing
+        series: list = self.dataStore.seasonal.copy()
         length: int = len(series)
         midleSeries: int = int(length / 2)
         bestPeriod = self.left

@@ -44,7 +44,7 @@ if __name__=='__main__':
     dataStoreThread.start()
 
     seasonalPeriod = SeasonalPeriod(dataStore)
-    seasonalPeriodThread = Thread(target=seasonalPeriod.fastCalculateSeasonalPeriod)
+    seasonalPeriodThread = Thread(target=seasonalPeriod.calculatePeriodInWhile)
     seasonalPeriodThread.start()
 
     predict = RealTimePredict(seasonalPeriod)

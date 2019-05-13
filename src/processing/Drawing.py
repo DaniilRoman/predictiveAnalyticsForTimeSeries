@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+from src.processing import DataHolder
+
 
 class Drawing:
     count = 0
@@ -10,7 +12,7 @@ class Drawing:
         self.ys = []
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(1, 1, 1)
-        self.data = data
+        self.data: DataHolder = data
         self.limit = self.data.limit
         self.predict = realTimePredict
 
@@ -32,8 +34,10 @@ class Drawing:
                 seasonalX = self.xs
 
                 max = self.xs[-1]
-                newX = list(range(max, max+len(newY)))
-                newY = list(newY)
+                newX = list(range(max, max+len(newY)))[:50]
+                newY = list(newY)[:50]
+
+                self.data.seasonal = self.ys
 
             self.ax.clear()
             self.ax.plot(self.xs, self.ys, 'blue')
@@ -47,5 +51,5 @@ class Drawing:
             plt.ylabel('Traffic (times)')
 
     def run(self):
-        ani = animation.FuncAnimation(self.fig, self.__animate, interval=5)
+        ani = animation.FuncAnimation(self.fig, self.__animate, interval=10)
         plt.show()

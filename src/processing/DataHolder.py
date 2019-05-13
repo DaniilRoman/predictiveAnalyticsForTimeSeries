@@ -1,7 +1,10 @@
 # from multiprocessing import Array
+from threading import Thread
 
 import pandas as pd
 import time
+
+from src.processing import SeasonalPeriod
 
 class DataHolder:
 
@@ -15,6 +18,7 @@ class DataHolder:
         self.xForDrawing = []
         self.yForDrawing = []
         self.count = 1
+        self.seasonal = []
 
     def getSeries(self, left, right):
         series = pd.read_csv('../../data/notebooks/network.csv')
@@ -28,12 +32,10 @@ class DataHolder:
         series, oldSeries = self.getSeries(left, right)
 
         ###############################################################
-        ###############################################################
         step = 170
         self.xForDrawing = list(range(step))
         self.yForDrawing = list(series[:step].values)
         self.count += step
-        ###############################################################
         ###############################################################
 
         while True:
@@ -42,18 +44,13 @@ class DataHolder:
                 # print("store: {}".format(self.xForDrawing))
                 self.x.append(self.count)
                 self.y.append(value)
-                if len(self.xForDrawing) == 0:
-                    self.xForDrawing = [self.count]
-                else:
-                    self.xForDrawing.append(self.count)
+                self.xForDrawing.append(self.count)
                 self.yForDrawing.append(value)
                 self.count += 1
             time.sleep(self.delay)
 
     def getXY(self):
-
         # print("get: {}".format(self.xForDrawing[:]))
-
         if len(self.xForDrawing) != 0:
             for i in range(100):
                 x = self.xForDrawing

@@ -7,11 +7,12 @@ class RealTimePredict:
 
     def __init__(self, seasonalPeriod, series=None, left=0, right=100):
         self.series = series
-        self.seasonalPeriod = seasonalPeriod
+        self.seasonalPeriod:SeasonalPeriod = seasonalPeriod
         self.left = left
         self.right = right
 
     def predict(self, series):
+        print("PERIOD: {}".format(self.seasonalPeriod.period))
         seasonal = seasonal_decompose(series, model='aditive', freq=self.seasonalPeriod.period).seasonal
         seasonalValues = seasonal.values if isinstance(seasonal, type(np.array([1]))) == False else seasonal
 
