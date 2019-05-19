@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from statsmodels.tsa.seasonal import seasonal_decompose
 from src.processing.SeasonalPeriod import SeasonalPeriod
 

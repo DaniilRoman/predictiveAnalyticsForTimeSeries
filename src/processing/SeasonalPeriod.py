@@ -10,7 +10,7 @@ from src.processing import DataHolder
 
 class SeasonalPeriod:
 
-    def __init__(self, dataStore: DataHolder, left: int = 10, right: int = 80):
+    def __init__(self, dataStore: DataHolder, left: int = 10, right: int = 90):
         self.dataStore = dataStore
         self.left = left
         self.right = right
@@ -28,7 +28,7 @@ class SeasonalPeriod:
         midleSeries: int = int(length / 2)
         bestPeriod = self.left
         prevBestPeriod = bestPeriod - 1
-        bestError = 200           # REFACTOR
+        bestError = 100000
         seriesForCheck = series[midleSeries:]
         bestSeasonal = seriesForCheck
         count = 0
@@ -42,8 +42,8 @@ class SeasonalPeriod:
             leftMidle = left + int((midle - left) / 2)
             rightMidle = midle + int((right - midle) / 2)
 
-            resultLeft = seasonal_decompose(series, model='aditive', freq=leftMidle)
-            resultRight = seasonal_decompose(series, model='aditive', freq=rightMidle)
+            resultLeft = seasonal_decompose(series, model='multiplicative', freq=leftMidle)
+            resultRight = seasonal_decompose(series, model='multiplicative', freq=rightMidle)
 
             seasonalLeft = resultLeft.seasonal[midleSeries:]
             seasonalLeft = seasonalLeft + abs(min(seasonalLeft))
@@ -53,7 +53,7 @@ class SeasonalPeriod:
             errorRight = self.meanAbsolutePercentageError(seriesForCheck, seasonalRight)
             # count = count + 1
             #         print("bestPeriod: {}".format(bestPeriod))
-            if (errorRight >= errorLeft):
+            if (errorRight <= errorLeft):
                 bestError = errorRight
                 prevBestPeriod = bestPeriod
                 bestPeriod = rightMidle
@@ -78,13 +78,13 @@ class SeasonalPeriod:
             right = bestPeriod + window
         for i in range(left, right):
             #         if(bestPeriod == prevBestPeriod): break
-            result = seasonal_decompose(series, model='aditive', freq=i)
+            result = seasonal_decompose(series, model='multiplicative', freq=i)
             seasonal = result.seasonal[midle:]
             seriesForCheck = series[midle:]
             seasonal = seasonal + abs(min(seasonal))
             error = self.meanAbsolutePercentageError(seriesForCheck, seasonal)
             count = count + 1
-            if (error >= bestError):
+            if (error <= bestError):
                 bestError = error
                 prevBestPeriod = bestPeriod
                 bestPeriod = i
@@ -122,7 +122,9 @@ class SeasonalPeriod:
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaler = scaler.fit(yPred)
         yPred = scaler.transform(yPred)
-        return np.mean(np.abs((yTrue - yPred) / yTrue)) * 100
+        # return np.mean(np.abs((yTrue - yPred) / yTrue)) * 100
+        return np.sum(np.square((yTrue - yPred)))
+
 
     def error(self, yTrue, yPred):
         error = lstsq(yTrue, yPred)
