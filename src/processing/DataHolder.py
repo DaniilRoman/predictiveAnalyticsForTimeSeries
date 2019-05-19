@@ -1,16 +1,14 @@
-# from multiprocessing import Array
-from threading import Thread
-
-import pandas as pd
 import time
 
-from src.processing import SeasonalPeriod
+from src.processing.Utils import getSeries
+
 
 class DataHolder:
 
-    def __init__(self, queue, limit=200, delay=0.1):
+    def __init__(self, queueIn, queueOut, limit=200, delay=0.1):
         self.delay = delay
-        self.q = queue
+        self.q = queueIn
+        self.out = queueOut
         self.limit = limit
         self.x = []
         self.y = []
@@ -20,16 +18,10 @@ class DataHolder:
         self.count = 1
         self.seasonal = []
 
-    def getSeries(self, left, right):
-        series = pd.read_csv('../../data/notebooks/network.csv')
-        oldSeries = series.r_asn
-        series = oldSeries[left:right]
-        return series, oldSeries
-
     def storeNewValue(self):
         left = 100
         right = left + 1000
-        series, oldSeries = self.getSeries(left, right)
+        series, oldSeries = getSeries(left, right)
 
         ###############################################################
         step = 170
@@ -40,12 +32,13 @@ class DataHolder:
 
         while True:
             if self.q.empty() == False:
-                value = self.q.get(timeout=0.01)
+                value = self.q.get(timeout=0.1)
                 # print("store: {}".format(self.xForDrawing))
                 self.x.append(self.count)
                 self.y.append(value)
                 self.xForDrawing.append(self.count)
                 self.yForDrawing.append(value)
+                self.out.put({'x': self.count, 'y': value})
                 self.count += 1
             time.sleep(self.delay)
 

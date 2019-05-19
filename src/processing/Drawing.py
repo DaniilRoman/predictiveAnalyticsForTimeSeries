@@ -34,8 +34,8 @@ class Drawing:
                 seasonalX = self.xs
 
                 max = self.xs[-1]
-                newX = list(range(max, max+len(newY)))[:50]
-                newY = list(newY)[:50]
+                newX = list(range(max, max+len(newY)))[:35]
+                newY = list(newY)[:35]
 
                 self.data.seasonal = self.ys
 

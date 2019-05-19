@@ -1,6 +1,7 @@
 import time
-from threading import Thread
 
+from numpy.linalg import lstsq
+from sklearn.preprocessing import normalize, MinMaxScaler
 from statsmodels.tsa.seasonal import seasonal_decompose
 import numpy as np
 
@@ -80,6 +81,7 @@ class SeasonalPeriod:
             result = seasonal_decompose(series, model='aditive', freq=i)
             seasonal = result.seasonal[midle:]
             seriesForCheck = series[midle:]
+            seasonal = seasonal + abs(min(seasonal))
             error = self.meanAbsolutePercentageError(seriesForCheck, seasonal)
             count = count + 1
             if (error >= bestError):
@@ -111,5 +113,18 @@ class SeasonalPeriod:
         self.period = bestPeriod
         return bestPeriod, bestError, bestSeasonal
 
-    def meanAbsolutePercentageError(self, y_true, y_pred):
-        return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    def meanAbsolutePercentageError(self, yTrue, yPred):
+        yTrue = np.array(yTrue).reshape((len(yTrue), 1))
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaler = scaler.fit(yTrue)
+        yTrue = scaler.transform(yTrue)
+        yPred = np.array(yPred).reshape((len(yPred), 1))
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaler = scaler.fit(yPred)
+        yPred = scaler.transform(yPred)
+        return np.mean(np.abs((yTrue - yPred) / yTrue)) * 100
+
+    def error(self, yTrue, yPred):
+        error = lstsq(yTrue, yPred)
+        print("ERROR: ", error)
+        return error[0]
