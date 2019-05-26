@@ -16,19 +16,26 @@ from src.mlModels.SelectFeatures import selectFeatures
 
 
 class MLModels:
-    def __init__(self, pathToFile, timeStr):
+    def __init__(self, pathToFile, timeStr, dataStr = "y"):
         self.timeStr = timeStr
         self.pathToFile = pathToFile
         self.tscv = TimeSeriesSplit(n_splits=5)
+        self.dataStr = dataStr
 
     def prepareData(self):
-        train = pd.read_csv('../../data/waves_price_train.csv')
-        test = pd.read_csv('../../data/waves_price_test.csv')
-        self.X_train = train.drop('y', axis=1)
-        self.y_train = train.y
+        # train = pd.read_csv('../../data/waves_price_train.csv')
+        # test = pd.read_csv('../../data/waves_price_test.csv')
+        left = 375
+        right = left + 200
+        step = 50
+        train = pd.read_csv(self.pathToFile, index_col=[self.timeStr], parse_dates=[self.timeStr])[self.dataStr][left: right]
+        test = pd.read_csv(self.pathToFile, index_col=[self.timeStr], parse_dates=[self.timeStr])[self.dataStr][right: right+step]
 
-        self.X_test = test.drop('y', axis=1)
-        self.y_test = test.y
+        self.X_train = train.drop(self.dataStr, axis=1)
+        self.y_train = train[self.dataStr]
+
+        self.X_test = test.drop(self.dataStr, axis=1)
+        self.y_test = test[self.dataStr]
 
         return self.X_train, self.X_test, self.y_train, self.y_test
 
@@ -70,7 +77,7 @@ class MLModels:
         plt.legend(loc="best")
         plt.tight_layout()
         plt.grid(True)
-        plt.savefig("../../data/images/ML/LinReg/" + "waves_Predicted.png")
+        # plt.savefig("../../data/images/ML/LinReg/" + "waves_Predicted.png")
 
 
     def plotCoefficients(self, model):
@@ -87,7 +94,7 @@ class MLModels:
         coefs.coef.plot(kind='bar')
         plt.grid(True, axis='y')
         plt.hlines(y=0, xmin=0, xmax=len(coefs), linestyles='dashed')
-        plt.savefig("../../data/images/ML/LinReg/" + "waves_Coef.png")
+        # plt.savefig("../../data/images/ML/LinReg/" + "waves_Coef.png")
 
     def runLenRegAndPlot(self):
         scaler = StandardScaler()
@@ -101,7 +108,7 @@ class MLModels:
 
         self.plotModelResults(lr, X_train=self.X_train_scaled, X_test=self.X_test_scaled, plot_intervals=True, plot_anomalies=True)
         self.plotCoefficients(lr)
-        plt.savefig("../../data/images/ML/LinReg/" + "waves_LenReg.png")
+        # plt.savefig("../../data/images/ML/LinReg/" + "waves_LenReg.png")
         plt.show()
 
     def plotCorrelMatrix(X_train):
@@ -123,7 +130,7 @@ class MLModels:
                          X_test=self.X_test_scaled,
                          plot_intervals=True, plot_anomalies=True)
         self.plotCoefficients(regularizationModel)
-        plt.savefig("../../data/images/ML/LinReg/" + "waves_Regularization.png")
+        # plt.savefig("../../data/images/ML/LinReg/" + "waves_Regularization.png")
 
     def applyXGBoost(self):
         xgb = XGBRegressor()

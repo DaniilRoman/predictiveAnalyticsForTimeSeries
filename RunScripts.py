@@ -5,7 +5,7 @@ from HoltWinters import HoltWinters
 
 
 def run_triple_exponential_smoothing(data):
-    data = data[:-20] # leave some data for testing
+    # data = data[:-20] # leave some data for testing
 
     # initializing model parameters alpha, beta and gamma
     x = [0, 0, 0]
@@ -19,10 +19,14 @@ def run_triple_exponential_smoothing(data):
 
     # Take optimal values...
     alpha_final, beta_final, gamma_final = opt.x
-    print(alpha_final, beta_final, gamma_final)
+    # alpha_final, beta_final, gamma_final = (0.025290320233789743, 0.0737327205106203, 0.0)
+    # print("alpha_final: ",alpha_final)
+    # print("beta_final: ", beta_final)
+    # print("gamma_final: ", gamma_final)
 
-    # ...and train the model with them, forecasting for the next 50 hours
-    model = HoltWinters(data, slen = 24,
+    # print(alpha_final, beta_final, gamma_final)
+
+    model = HoltWinters(data, slen = 46,
                         alpha = alpha_final,
                         beta = beta_final,
                         gamma = gamma_final,

@@ -3,6 +3,8 @@ from sklearn.preprocessing import MinMaxScaler
 from statsmodels.tsa.seasonal import seasonal_decompose
 from src.processing.SeasonalPeriod import SeasonalPeriod
 
+import time as t
+
 
 class RealTimePredict:
 
@@ -13,6 +15,8 @@ class RealTimePredict:
         self.right = right
 
     def predict(self, series):
+        start = t.time()
+
         print("PERIOD: {}".format(self.seasonalPeriod.period))
         seasonal = seasonal_decompose(series, model='aditive', freq=self.seasonalPeriod.period).seasonal
         seasonalValues = seasonal.values if isinstance(seasonal, type(np.array([1]))) == False else seasonal
@@ -20,9 +24,7 @@ class RealTimePredict:
         periodLeft, periodRight = self.__lastPeriod(seasonalValues)
         periodCount = periodRight - periodLeft
 
-        ########################### REFACTOR
         seasonal = seasonal + abs(min(seasonal))
-        ###########################
 
         # x = np.array(range(self.left, self.right), dtype=np.double)[np.newaxis]
         x = np.array(range(len(series)), dtype=np.double)[np.newaxis]
@@ -38,9 +40,10 @@ class RealTimePredict:
         # берем в виде предикшена наш последний период сезонности
         #     new_y = seasonal.values[periodLeft:periodRight]
 
-        ########################### REFACTOR
         newY = newY + abs(min(newY[1:]))
-        ###########################
+
+        end = t.time()
+        print("TIME: ", end-start)
         return seasonal, newY
 
     def __lastPeriod(self, seasonal):
